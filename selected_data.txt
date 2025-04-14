@@ -1,0 +1,12 @@
+data/artgs/sapien/table_31249/start/train/rgba/0011.png
+data/artgs/sapien/storage_47648/start/train/rgba/0062.png
+data/paris/sapien/blade_103706/end/train/rgba/0040.png
+data/paris/sapien/foldchair_102255/end/train/rgba/0034.png
+data/paris/sapien/laptop_10211/start/train/rgba/0041.png
+data/paris/sapien/scissor_11100/end/train/rgba/0052.png
+data/paris/sapien/stapler_103111/start/train/rgba/0018.png
+data/paris/sapien/USB_100109/start/train/rgba/0011.png
+data/paris/sapien/washer_103776/end/train/rgba/0008.png
+
+data/paris/realscan/real_fridge/end/train/rgba/0074.png
+data/paris/realscan/real_storage/end/train/rgba/0028.png

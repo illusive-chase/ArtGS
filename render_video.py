@@ -8,23 +8,24 @@
 #
 # For inquiries contact  george.drettakis@inria.fr
 #
-import cv2
 import copy
-import torch
-from scene import Scene, DeformModel
-import os
-from tqdm import tqdm
-from os import makedirs
-from gaussian_renderer import render
-import torchvision
-from utils.general_utils import safe_state, vis_depth
-from argparse import ArgumentParser
-from arguments import ModelParams, PipelineParams, get_combined_args, OptimizationParams
-from gaussian_renderer import GaussianModel
-from utils.metrics import seed_everything
-import numpy as np
-from moviepy.editor import VideoFileClip
 import json
+import os
+from argparse import ArgumentParser
+from os import makedirs
+
+import cv2
+import numpy as np
+import torch
+import torchvision
+from moviepy.editor import VideoFileClip
+from tqdm import tqdm
+
+from arguments import ModelParams, OptimizationParams, PipelineParams, get_combined_args
+from gaussian_renderer import GaussianModel, render
+from scene import DeformModel, Scene
+from utils.general_utils import safe_state, vis_depth
+from utils.metrics import seed_everything
 
 
 def generate_camera_poses(args, N=30):
@@ -40,15 +41,15 @@ def generate_camera_poses(args, N=30):
     - poses: A list of camera poses (4x4 transformation matrices).
     """
     poses = []
-    file = json.load(open(f'./arguments/cam_traj.json'))
+    file = json.load(open('./arguments/cam_traj.json'))
     traj_info = file[args.dataset][args.subset][args.scene_name]
     radius, r_theta, r_phi = traj_info['radius'], traj_info['theta'], traj_info['phi']
     d_theta, d_phi = traj_info['d_theta'], traj_info['d_phi']
 
-    thetas = np.linspace(r_theta[0] * np.pi, r_theta[1] * np.pi, N)
-    thetas = np.concatenate([np.zeros(N//2), thetas]) + d_theta * np.pi
-    azimuths = np.linspace(r_phi[0] * np.pi, r_phi[1] * np.pi, N)
-    azimuths = np.concatenate([np.zeros(N//2), azimuths]) + d_phi * np.pi
+    thetas = np.linspace(r_theta[0] * np.pi, r_theta[1] * np.pi, N//2)
+    thetas = np.concatenate([np.zeros(N//2) + r_theta[0] * np.pi, thetas]) + d_theta * np.pi
+    azimuths = np.linspace(r_phi[0] * np.pi, r_phi[1] * np.pi, N//2)
+    azimuths = np.concatenate([np.zeros(N//2) + r_phi[0] * np.pi, azimuths]) + d_phi * np.pi
     roty180 = np.array([[-1, 0, 0, 0],
                         [0, 1, 0, 0],
                         [0, 0, -1, 0],
@@ -138,12 +139,15 @@ def video2gif(video_file):
     clip.close()
 
 
-def render_set(args, name, iteration, views, gaussians, pipeline, background, deform, N_frames=60, inverse=False, recenter=False):
+def render_set(args, name, iteration, views, gaussians, pipeline, background, deform, N_frames=60, inverse=False, recenter=False, outerpolation=False):
     model_path = args.model_path
-    timels = np.concatenate([np.linspace(0, 1, N_frames//4), np.linspace(1, 0, N_frames//4)])
+    assert N_frames % 3 == 0
+    offset = 0.5 if outerpolation else 0
+    timels = np.concatenate([np.linspace(0 - offset, 1 + offset, N_frames//3//2), np.linspace(1 + offset, 0 - offset, N_frames//3 - N_frames//3//2)])
     timels = np.concatenate([timels, timels, timels])
     # timels = np.linspace(0, 1, N_frames)
     dx_list, dr_list = deform.deform.interpolate(gaussians, timels)
+    assert len(dx_list) == len(views), (len(dx_list), len(views))
     
     save_dir = os.path.join(model_path, name, "ours_{}".format(iteration))
     if os.path.exists(save_dir):
@@ -211,7 +215,7 @@ def render_sets(args, dataset: ModelParams, iteration, pipeline: PipelineParams,
         print(N_frames)
         cam_traj = generate(cam_traj, args, N_frames)
         # cam_traj = cam_traj[len(cam_traj)-(N_frames // 2)-1:len(cam_traj)-(N_frames // 2)] * (N_frames // 2) + cam_traj[len(cam_traj)-(N_frames // 2):]
-        render_set(args, "render", scene.loaded_iter, cam_traj, gaussians, pipeline, background, deform, N_frames, args.inverse, args.recenter)
+        render_set(args, "render_out" if args.outerpolation else "render", scene.loaded_iter, cam_traj, gaussians, pipeline, background, deform, N_frames, args.inverse, args.recenter, args.outerpolation)
 
 
 if __name__ == "__main__":
@@ -224,6 +228,7 @@ if __name__ == "__main__":
     parser.add_argument("--quiet", action="store_true")
     parser.add_argument("--N_frames", default=30, type=int)
     parser.add_argument("--inverse", action="store_true")
+    parser.add_argument("--outerpolation", action="store_true")
     parser.add_argument("--recenter", action="store_true", help="Recenter the gs for real world demo")
 
     args = get_combined_args(parser)

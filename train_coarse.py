@@ -9,20 +9,22 @@
 # For inquiries contact  george.drettakis@inria.fr
 #
 
-import torch
-from random import randint
-from utils.loss_utils import l1_loss, ssim
-from gaussian_renderer import render
 import sys
-from scene import Scene, GaussianModel
-from scene.dataset_readers import fetchPly
-from utils.general_utils import safe_state, get_linear_noise_func
-import tqdm
 from argparse import ArgumentParser
-from arguments import ModelParams, PipelineParams, OptimizationParams
+from random import randint
+
+import torch
+import tqdm
 from pytorch_lightning import seed_everything
-from utils.metrics import *
+
+from arguments import ModelParams, OptimizationParams, PipelineParams
+from gaussian_renderer import render
+from scene import GaussianModel, Scene
+from scene.dataset_readers import fetchPly
+from utils.general_utils import get_linear_noise_func, safe_state
 from utils.log_utils import prepare_output_and_logger
+from utils.loss_utils import l1_loss, ssim
+from utils.metrics import *
 
 
 class Trainer:

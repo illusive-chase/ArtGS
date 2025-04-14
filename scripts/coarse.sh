@@ -9,10 +9,11 @@ export CUDA_VISIBLE_DEVICES=0
 # subset=sapien
 # scenes=(fridge_10489 storage_47254)
 
-dataset=artgs
-subset=sapien
-scenes=(oven_101908 table_25493 storage_45503 storage_47648 table_31249)
-scenes=(table_25493 table_31249)
+# dataset=artgs
+# subset=sapien
+# scenes=(oven_101908 table_25493 storage_45503 storage_47648 table_31249)
+# scenes=(table_25493 table_31249)
+# scenes=(table_31249)
 
 
 model_name=coarse_gs

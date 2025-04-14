@@ -28,8 +28,8 @@
             "oven_101908": "s,r,r,r",
             "table_25493": "s,p,p,p",
             "storage_45503": "s,r,r,r",
-            "storage_47648": "s,p,p,r,r,r,r",
-            "table_31249": "s,p,r,p,r"
+            "storage_47648": "s,p,p,r,r,p,r",
+            "table_31249": "s,p,r,r,p"
         },
         "realscan": {
             "cabinet_2drawer": "s,p,p",
